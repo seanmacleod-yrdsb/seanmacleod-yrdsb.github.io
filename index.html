@@ -23,7 +23,8 @@
       /* Dial + drawing */
       --dial: rgba(14,20,32,0.32);
       --dialOutline: rgba(14,20,32,0.10);
-      --tick: rgba(14,20,32,0.32);
+      --tick: rgba(14,20,32,0.42);
+      --tickOutline: rgba(14,20,32,0.18);
       --centerDot: rgba(14,20,32,0.62);
       --target: rgba(85, 105, 125, 0.62);
 
@@ -36,26 +37,28 @@
       --radius: 18px;
     }
 
-    /* 🔥 High-contrast dark theme (different approach) */
-    [data-theme="dark"]{
+    /* High-contrast dark theme */
+    body[data-theme="dark"]{
       --bg: #06070b;
       --bg2:#090b12;
 
       --panel: rgba(16,18,26,0.78);
       --panelBorder: rgba(255,255,255,0.14);
       --text: #f4f7ff;
-      --muted: rgba(244,247,255,0.72);
+      --muted: rgba(244,247,255,0.74);
 
-      /* Stage background slightly lighter than page so dial pops */
       --stageBg: rgba(18, 20, 32, 0.88);
       --stageBorder: rgba(255,255,255,0.16);
 
-      /* Dial + ticks: BRIGHT */
-      --dial: rgba(245, 248, 255, 0.98);       /* near-white */
-      --dialOutline: rgba(0,0,0,0.65);          /* dark outline stroke */
-      --tick: rgba(235, 242, 255, 0.92);
-      --centerDot: rgba(245, 248, 255, 0.95);
-      --target: rgba(200, 220, 255, 0.70);
+      /* Make dial + ticks unmistakably visible */
+      --dial: rgba(255,255,255,0.95);
+      --dialOutline: rgba(0,0,0,0.72);
+
+      --tick: rgba(255,255,255,0.98);
+      --tickOutline: rgba(0,0,0,0.78);
+
+      --centerDot: rgba(255,255,255,0.95);
+      --target: rgba(210, 228, 255, 0.80);
 
       --shadow: 0 20px 60px rgba(0,0,0,0.60);
     }
@@ -129,23 +132,20 @@
       outline: none;
     }
 
-    input[type="range"]{
-      width: 160px;
-      height: 36px;
-    }
+    input[type="range"]{ width: 160px; height: 36px; }
 
     select:focus, input[type="number"]:focus, button:focus{
       border-color: rgba(46,134,222,0.55);
       box-shadow: 0 0 0 3px rgba(46,134,222,0.18);
     }
 
-    [data-theme="dark"] select,
-    [data-theme="dark"] input[type="number"],
-    [data-theme="dark"] button{
+    body[data-theme="dark"] select,
+    body[data-theme="dark"] input[type="number"],
+    body[data-theme="dark"] button{
       background: rgba(255,255,255,0.08);
       border-color: rgba(255,255,255,0.18);
     }
-    [data-theme="dark"] select option{
+    body[data-theme="dark"] select option{
       background: #0a0c14;
       color: #f4f7ff;
     }
@@ -167,7 +167,7 @@
       border: 1px solid var(--panelBorder);
       background: rgba(255,255,255,0.70);
     }
-    [data-theme="dark"] .togglePill{
+    body[data-theme="dark"] .togglePill{
       background: rgba(255,255,255,0.08);
       border-color: rgba(255,255,255,0.18);
     }
@@ -183,7 +183,7 @@
       cursor: pointer;
       border: 1px solid rgba(0,0,0,0.08);
     }
-    [data-theme="dark"] .togglePill input{
+    body[data-theme="dark"] .togglePill input{
       background: rgba(255,255,255,0.12);
       border-color: rgba(255,255,255,0.16);
     }
@@ -201,13 +201,8 @@
       background: rgba(46,134,222,0.45);
       border-color: rgba(46,134,222,0.35);
     }
-    .togglePill input:checked::after{
-      transform: translateX(18px);
-    }
-    .togglePill span{
-      font-size: 12px;
-      color: var(--muted);
-    }
+    .togglePill input:checked::after{ transform: translateX(18px); }
+    .togglePill span{ font-size: 12px; color: var(--muted); }
 
     .stage{
       position: relative;
@@ -220,18 +215,14 @@
       backdrop-filter: blur(10px);
     }
 
-    canvas{
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
+    canvas{ width: 100%; height: 100%; display: block; }
 
     .overlay{
       position: absolute;
       inset: 0;
       display: grid;
       grid-template-rows: auto 1fr auto;
-      padding: 16px;
+      padding: 22px 16px 16px;
       pointer-events: none;
     }
 
@@ -239,6 +230,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      margin-bottom: 14px;
     }
 
     .targetPill{
@@ -251,40 +243,21 @@
       text-align: center;
       min-width: 220px;
     }
-    [data-theme="dark"] .targetPill{
+    body[data-theme="dark"] .targetPill{
       background: rgba(255,255,255,0.08);
       border-color: rgba(255,255,255,0.18);
       box-shadow: 0 10px 30px rgba(0,0,0,0.35);
     }
 
-    .targetBig{
-      font-weight: 900;
-      font-size: 28px;
-      letter-spacing: 0.2px;
-    }
-    .targetSub{
-      margin-top: 2px;
-      font-size: 12px;
-      color: var(--muted);
-    }
+    .targetBig{ font-weight: 900; font-size: 28px; letter-spacing: 0.2px; }
+    .targetSub{ margin-top: 2px; font-size: 12px; color: var(--muted); }
 
-    .midRow{
-      position: relative;
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      align-items: center;
-    }
-    .playerCol{
-      display: flex;
-      align-items: center;
-    }
-    .playerCol.left{ justify-content: flex-start; }
-    .playerCol.right{ justify-content: flex-end; }
+    .midRow{ position: relative; display: grid; align-items: center; }
 
     .playerCard{
       pointer-events: auto;
       cursor: pointer;
-      width: min(260px, 44vw);
+      width: min(280px, 34vw);
       background: rgba(255,255,255,0.76);
       border: 1px solid var(--panelBorder);
       border-radius: 22px;
@@ -295,35 +268,19 @@
       display: grid;
       gap: 6px;
     }
-    [data-theme="dark"] .playerCard{
+    body[data-theme="dark"] .playerCard{
       background: rgba(255,255,255,0.08);
       border-color: rgba(255,255,255,0.18);
       box-shadow: 0 12px 32px rgba(0,0,0,0.35);
     }
-    .playerCard:hover{ transform: translateY(-1px); filter: brightness(1.01); }
-    .playerCard:active{ transform: translateY(0px); }
 
-    .playerTop{
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-    }
-
-    .playerName{
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 900;
-      font-size: 18px;
-    }
+    .playerTop{ display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .playerName{ display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 18px; }
     .swatch{
-      width: 14px;
-      height: 14px;
-      border-radius: 999px;
+      width: 14px; height: 14px; border-radius: 999px;
       box-shadow: 0 0 0 4px rgba(255,255,255,0.65);
     }
-    [data-theme="dark"] .swatch{ box-shadow: 0 0 0 4px rgba(0,0,0,0.25); }
+    body[data-theme="dark"] .swatch{ box-shadow: 0 0 0 4px rgba(0,0,0,0.25); }
 
     .turnTag{
       font-size: 12px;
@@ -333,20 +290,40 @@
       border: 1px solid var(--panelBorder);
       background: rgba(255,255,255,0.56);
     }
-    [data-theme="dark"] .turnTag{
+    body[data-theme="dark"] .turnTag{
       background: rgba(255,255,255,0.06);
       border-color: rgba(255,255,255,0.14);
     }
 
-    .scoreBig{
-      font-size: 34px;
-      font-weight: 950;
-      letter-spacing: 0.3px;
-      line-height: 1;
+    .scoreBig{ font-size: 34px; font-weight: 950; letter-spacing: 0.3px; line-height: 1; }
+    .scoreSub{ font-size: 12px; color: var(--muted); }
+
+    .playerAnchor{
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 1px;
+      height: 1px;
+      pointer-events: none;
     }
-    .scoreSub{
-      font-size: 12px;
-      color: var(--muted);
+    .playerAnchor .playerCard{ pointer-events: auto; }
+
+    .playerAnchor.left{ left: 22%; }
+    .playerAnchor.right{ left: 78%; }
+
+    @media (max-width: 1100px){
+      .playerAnchor.left{ left: 18%; }
+      .playerAnchor.right{ left: 82%; }
+      .playerCard{ width: min(260px, 38vw); }
+    }
+    @media (max-width: 720px){
+      .playerAnchor{ position: static; transform: none; width: auto; height: auto; }
+      .midRow{ display: grid; gap: 10px; justify-items: center; }
+      .playerCard{ width: min(320px, 92vw); }
     }
 
     .bottomRow{
@@ -370,7 +347,7 @@
       backdrop-filter: blur(10px);
       min-width: 260px;
     }
-    [data-theme="dark"] .resultPill{
+    body[data-theme="dark"] .resultPill{
       background: rgba(255,255,255,0.08);
       border-color: rgba(255,255,255,0.18);
       box-shadow: 0 12px 32px rgba(0,0,0,0.35);
@@ -387,7 +364,7 @@
       backdrop-filter: blur(10px);
       max-width: 620px;
     }
-    [data-theme="dark"] .hint{
+    body[data-theme="dark"] .hint{
       background: rgba(255,255,255,0.08);
       border-color: rgba(255,255,255,0.18);
       box-shadow: 0 12px 32px rgba(0,0,0,0.35);
@@ -428,7 +405,7 @@
       background: rgba(255,255,255,0.60);
       color: var(--muted);
     }
-    [data-theme="dark"] .kbd{
+    body[data-theme="dark"] .kbd{
       background: rgba(255,255,255,0.08);
       border-color: rgba(255,255,255,0.16);
     }
@@ -444,22 +421,11 @@
       position:absolute;
       left:-9999px; top:-9999px;
     }
-
-    @media (max-width: 900px){
-      .playerCard{ width: min(220px, 46vw); }
-      .scoreBig{ font-size: 30px; }
-      .targetBig{ font-size: 24px; }
-    }
-    @media (max-width: 720px){
-      .midRow{ grid-template-columns: 1fr; gap: 10px; }
-      .playerCol.left, .playerCol.right{ justify-content: center; }
-    }
   </style>
 </head>
 
-<body data-theme="light">
+<body data-theme="dark">
   <div class="app">
-    <!-- Top controls -->
     <div class="bar">
       <div class="group">
         <label for="players">Players</label>
@@ -534,7 +500,6 @@
       </div>
     </div>
 
-    <!-- Stage -->
     <div class="stage" id="stage">
       <canvas id="cv"></canvas>
 
@@ -547,7 +512,7 @@
         </div>
 
         <div class="midRow">
-          <div class="playerCol left">
+          <div class="playerAnchor left">
             <div class="playerCard" id="pillP1" title="Click to change Player 1 color">
               <div class="playerTop">
                 <div class="playerName">
@@ -561,9 +526,7 @@
             </div>
           </div>
 
-          <div></div>
-
-          <div class="playerCol right">
+          <div class="playerAnchor right">
             <div class="playerCard" id="pillP2" title="Click to change Player 2 color">
               <div class="playerTop">
                 <div class="playerName">
@@ -585,14 +548,13 @@
           </div>
 
           <div class="hint">
-            <div class="hintTitle" id="hudPrompt">Hold (mouse/touch) or hold Space to rotate</div>
+            <div class="hintTitle" id="hudPrompt">Hold mouse/touch OR hold Space to rotate</div>
             <div class="hintDesc" id="hudSub">Release to stop. 0° right, 90° up, 180° left, 270° down.</div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Footer -->
     <div class="footer">
       <div class="footerLeft">
         <span><strong>Controls:</strong></span>
@@ -624,25 +586,22 @@
     const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
     const randInt = (lo, hi) => Math.floor(lo + Math.random() * (hi - lo + 1));
     const degToRad = d => d * Math.PI / 180;
-
-    function wrapDeg(d, extent){
+    const wrapDeg = (d, extent) => {
       let x = d % extent;
       if (x < 0) x += extent;
       return x;
-    }
-
-    function shortestDistance(a, b, extent){
+    };
+    const shortestDistance = (a, b, extent) => {
       let d = wrapDeg(b - a, extent);
       if (d > extent / 2) d = extent - d;
       return Math.abs(d);
-    }
-
-    function scoreFromError(errorDeg){
+    };
+    const scoreFromError = (errorDeg) => {
       const maxPoints = 100;
       const zeroAt = 20;
       const s = Math.round(maxPoints * (1 - (errorDeg / zeroAt)));
       return clamp(s, 0, maxPoints);
-    }
+    };
 
     const DIFF = {
       easy:    { ticks: true,  numbers: true,  targetFadeMs: 0 },
@@ -733,16 +692,14 @@
     const colorP2 = document.getElementById("colorP2");
 
     // ---------- CSS helpers ----------
+    // IMPORTANT FIX: read variables from an element that actually has the body theme vars applied
     function getCSS(varName){
-      return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+      return getComputedStyle(stage).getPropertyValue(varName).trim();
     }
     function setCSS(varName, value){
       document.documentElement.style.setProperty(varName, value);
     }
-
-    function isDark(){
-      return document.body.getAttribute("data-theme") === "dark";
-    }
+    const isDark = () => document.body.getAttribute("data-theme") === "dark";
 
     // ---------- Canvas scaling ----------
     function resizeCanvas(){
@@ -792,17 +749,13 @@
       lastTs: 0,
       rotating: false,
 
-      lastResultDeg: null,
-      lastErrorDeg: null,
-      lastPoints: null,
-
       targetShownAt: 0,
 
       progressDeg: 0,
       progressVisible: false
     };
 
-    // ---------- UI setup ----------
+    // ---------- UI ----------
     function applyTheme(){
       document.body.setAttribute("data-theme", themeSel.value);
     }
@@ -852,13 +805,8 @@
     }
 
     function showResultPill(show){
-      if (show){
-        hudResultPill.style.opacity = "1";
-        hudResultPill.style.transform = "translateY(0px)";
-      } else {
-        hudResultPill.style.opacity = "0";
-        hudResultPill.style.transform = "translateY(4px)";
-      }
+      hudResultPill.style.opacity = show ? "1" : "0";
+      hudResultPill.style.transform = show ? "translateY(0px)" : "translateY(4px)";
     }
 
     function syncPlayerSwatches(){
@@ -893,7 +841,7 @@
 
       if (game.state === State.ROUND_START){
         hudPrompt.textContent = "Hold mouse/touch OR hold Space to rotate";
-        hudSub.textContent = "Release to stop. Use 0°, 90°, 180°, 270° as anchors.";
+        hudSub.textContent = "Release to stop. 0° right, 90° up, 180° left, 270° down.";
       } else if (game.state === State.ROTATING){
         hudPrompt.textContent = "Keep holding… release to stop!";
         hudSub.textContent = "Watch the shaded sector build from 0° as you rotate.";
@@ -906,6 +854,7 @@
       }
     }
 
+    // ---------- Game flow ----------
     function startSetup(){
       game.players = parseInt(playersSel.value, 10);
       game.extent = parseInt(extentSel.value, 10);
@@ -917,10 +866,6 @@
       game.round = 1;
       game.currentPlayer = 1;
       game.scores = [0,0];
-
-      game.lastResultDeg = null;
-      game.lastErrorDeg = null;
-      game.lastPoints = null;
 
       game.progressDeg = 0;
       game.progressVisible = false;
@@ -934,12 +879,8 @@
       game.state = State.ROUND_START;
       game.targetDeg = pickTargetAngle(game.angleSet, game.extent);
 
-      game.armDeg = 0; // always start at 0
+      game.armDeg = 0;
       game.targetShownAt = performance.now();
-
-      game.lastResultDeg = null;
-      game.lastErrorDeg = null;
-      game.lastPoints = null;
 
       game.progressDeg = 0;
       game.progressVisible = false;
@@ -968,11 +909,6 @@
       const error = shortestDistance(game.targetDeg, result, game.extent);
       const points = scoreFromError(error);
 
-      game.lastResultDeg = result;
-      game.lastErrorDeg = error;
-      game.lastPoints = points;
-
-      // keep progress visible after stop
       game.progressVisible = true;
       game.progressDeg = result;
 
@@ -1024,45 +960,35 @@
       applyDifficultyVisuals();
 
       const cx = w / 2;
-      const cy = h / 2 + 10;
-      const r = Math.min(w, h) * 0.33;
+      const cy = h / 2 + 34;
+      const r = Math.min(w, h) * 0.315;
 
-      // Background “dial spotlight” (works in both themes; stronger in dark)
       drawDialSpotlight(cx, cy, r);
-
-      // Dial circumference: double-stroke for contrast (especially dark mode)
       drawDialCircle(cx, cy, r);
 
-      // ticks
       if (game.showTicks) drawTicks(cx, cy, r, game.extent);
       else drawCardinalTicks(cx, cy, r);
 
-      // numbers
       if (game.showNumbers) drawKeyNumbers(cx, cy, r, game.extent);
 
-      // progress sector
       if (game.progressVisible){
         const fillHex = (game.currentPlayer === 1) ? getCSS("--p1") : getCSS("--p2");
         drawProgressSector(cx, cy, r, game.progressDeg, fillHex);
       }
 
-      // dashed target after stop
       const showTarget = (game.state === State.FEEDBACK || game.state === State.TURN_END || game.state === State.GAME_OVER);
       if (showTarget){
-        drawArm(cx, cy, r, game.targetDeg, getCSS("--target"), 3.2, true, true);
+        drawArm(cx, cy, r, game.targetDeg, getCSS("--target"), 3.4, true, true);
       }
 
-      // player arm
       const armColor = (game.currentPlayer === 1) ? getCSS("--p1") : getCSS("--p2");
-      drawArm(cx, cy, r, game.armDeg, armColor, 5.2, false, true);
+      drawArm(cx, cy, r, game.armDeg, armColor, 5.4, false, true);
 
-      // center dot
       ctx.beginPath();
-      ctx.arc(cx, cy, 4.5, 0, Math.PI*2);
+      ctx.arc(cx, cy, 4.8, 0, Math.PI*2);
       ctx.fillStyle = getCSS("--centerDot");
       ctx.fill();
 
-      // rotation update
       if (game.state === State.ROTATING && game.rotating){
         const dt = (ts - game.lastTs) / 1000;
         game.lastTs = ts;
@@ -1080,9 +1006,7 @@
     function drawDialSpotlight(cx, cy, r){
       ctx.save();
       const g = ctx.createRadialGradient(cx, cy, r * 0.15, cx, cy, r * 1.15);
-
       if (isDark()){
-        // brighter “spotlight” makes the white dial look anchored
         g.addColorStop(0.0, "rgba(255,255,255,0.10)");
         g.addColorStop(0.6, "rgba(255,255,255,0.04)");
         g.addColorStop(1.0, "rgba(255,255,255,0.00)");
@@ -1091,7 +1015,6 @@
         g.addColorStop(0.7, "rgba(10,14,25,0.02)");
         g.addColorStop(1.0, "rgba(10,14,25,0.00)");
       }
-
       ctx.fillStyle = g;
       ctx.beginPath();
       ctx.arc(cx, cy, r * 1.18, 0, Math.PI * 2);
@@ -1100,124 +1023,115 @@
     }
 
     function drawDialCircle(cx, cy, r){
-      // Outline stroke (dark) + top bright stroke
       ctx.save();
 
-      // dark outline (improves visibility even if dial hits bright background spots)
+      // Thicker in both modes; extra thick in dark mode
+      const outlineW = isDark() ? 8.6 : 5.6;
+      const mainW    = isDark() ? 5.2 : 3.8;
+
       ctx.beginPath();
       ctx.arc(cx, cy, r, 0, Math.PI*2);
       ctx.strokeStyle = getCSS("--dialOutline");
-      ctx.lineWidth = isDark() ? 6.6 : 4.8;
+      ctx.lineWidth = outlineW;
       ctx.stroke();
 
-      // bright main stroke
       ctx.beginPath();
       ctx.arc(cx, cy, r, 0, Math.PI*2);
       ctx.strokeStyle = getCSS("--dial");
-      ctx.lineWidth = isDark() ? 3.6 : 3.2;
+      ctx.lineWidth = mainW;
       ctx.stroke();
 
-      // thin inner ring for extra definition (dark mode)
       if (isDark()){
         ctx.beginPath();
-        ctx.arc(cx, cy, r - 2.2, 0, Math.PI*2);
+        ctx.arc(cx, cy, r - 3.0, 0, Math.PI*2);
         ctx.strokeStyle = "rgba(255,255,255,0.35)";
-        ctx.lineWidth = 1.2;
+        ctx.lineWidth = 1.4;
         ctx.stroke();
       }
 
       ctx.restore();
     }
 
+    function drawTickSegment(x1,y1,x2,y2,lw){
+      // Thick outline + thick main line (more readable)
+      ctx.beginPath();
+      ctx.lineWidth = lw + (isDark() ? 3.0 : 2.0);
+      ctx.strokeStyle = getCSS("--tickOutline");
+      ctx.lineCap = "round";
+      ctx.moveTo(x1,y1);
+      ctx.lineTo(x2,y2);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.lineWidth = lw;
+      ctx.strokeStyle = getCSS("--tick");
+      ctx.lineCap = "round";
+      ctx.moveTo(x1,y1);
+      ctx.lineTo(x2,y2);
+      ctx.stroke();
+    }
+
     function drawCardinalTicks(cx, cy, r){
       const angles = [0, 90, 180, 270];
-      ctx.strokeStyle = getCSS("--tick");
-
       for (const a of angles){
         const ang = degToRad(a);
-        const len = isDark() ? 18 : 15;
-        const lw = isDark() ? 3.2 : 2.6;
+        const len = isDark() ? 24 : 16;
+        const lw = isDark() ? 4.8 : 3.0;
 
         const x1 = cx + Math.cos(ang) * (r - len);
         const y1 = cy - Math.sin(ang) * (r - len);
         const x2 = cx + Math.cos(ang) * (r + 1);
         const y2 = cy - Math.sin(ang) * (r + 1);
 
-        // tick outline
-        if (isDark()){
-          ctx.beginPath();
-          ctx.lineWidth = lw + 2;
-          ctx.strokeStyle = "rgba(0,0,0,0.65)";
-          ctx.moveTo(x1, y1);
-          ctx.lineTo(x2, y2);
-          ctx.stroke();
-          ctx.strokeStyle = getCSS("--tick");
-        }
-
-        ctx.beginPath();
-        ctx.lineWidth = lw;
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
+        drawTickSegment(x1,y1,x2,y2,lw);
       }
     }
 
     function drawTicks(cx, cy, r, extent){
       const keyAngles = (extent === 180)
-        ? [0, 30, 45, 60, 90, 120, 135, 150, 180]
-        : [0, 30, 45, 60, 90, 120, 135, 150, 180, 210, 225, 240, 270, 300, 315, 330];
+        ? [0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180]
+        : [0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180, 195, 210, 225, 240, 255, 270, 285, 300, 315, 330, 345];
 
       for (const a of keyAngles){
         const ang = degToRad(a);
         const isKey = (a % 90 === 0);
         const isMid = (a % 45 === 0);
 
-        const len = isKey ? (isDark() ? 18 : 15) : (isMid ? (isDark() ? 14 : 12) : (isDark() ? 11 : 9));
-        const lw  = isKey ? (isDark() ? 3.2 : 2.6) : (isDark() ? 2.4 : 1.9);
+        const len = isKey ? (isDark() ? 26 : 16) : (isMid ? (isDark() ? 20 : 13) : (isDark() ? 16 : 10));
+        const lw  = isKey ? (isDark() ? 5.2 : 3.0) : (isDark() ? 4.2 : 2.2);
 
         const x1 = cx + Math.cos(ang) * (r - len);
         const y1 = cy - Math.sin(ang) * (r - len);
         const x2 = cx + Math.cos(ang) * (r + 1);
         const y2 = cy - Math.sin(ang) * (r + 1);
 
-        // dark outline behind ticks in dark mode
-        if (isDark()){
-          ctx.beginPath();
-          ctx.lineWidth = lw + 2;
-          ctx.strokeStyle = "rgba(0,0,0,0.65)";
-          ctx.moveTo(x1, y1);
-          ctx.lineTo(x2, y2);
-          ctx.stroke();
-        }
-
-        ctx.beginPath();
-        ctx.strokeStyle = getCSS("--tick");
-        ctx.lineWidth = lw;
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
+        drawTickSegment(x1,y1,x2,y2,lw);
       }
     }
 
     function drawKeyNumbers(cx, cy, r, extent){
       const keys = (extent === 180) ? [0, 90, 180] : [0, 90, 180, 270];
+      const isEasy = (game.difficulty === "easy");
 
       ctx.save();
-      ctx.font = "900 12px system-ui";
+      ctx.font = isEasy ? "950 14px system-ui" : "900 12px system-ui";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
 
       for (const a of keys){
         const ang = degToRad(a);
-        const rr = r + 28;
+        const rr = r + (isEasy ? 34 : 30);
         const x = cx + Math.cos(ang) * rr;
         const y = cy - Math.sin(ang) * rr;
 
         if (isDark()){
-          // shadow outline so numbers are readable
-          ctx.fillStyle = "rgba(0,0,0,0.75)";
+          // Strong outline + bright fill
+          ctx.fillStyle = "rgba(0,0,0,0.88)";
           ctx.fillText(String(a), x, y + 1);
-          ctx.fillStyle = "rgba(245,248,255,0.88)";
+          ctx.fillText(String(a), x + 1, y);
+          ctx.fillText(String(a), x - 1, y);
+          ctx.fillText(String(a), x, y - 1);
+          ctx.fillStyle = "rgba(255,255,255,0.92)";
         } else {
           ctx.fillStyle = getCSS("--muted");
         }
@@ -1233,7 +1147,6 @@
 
       ctx.save();
 
-      // subtle shadow for a crisp “modern” arm
       ctx.beginPath();
       ctx.lineWidth = width;
       ctx.lineCap = "round";
@@ -1250,16 +1163,15 @@
       ctx.setLineDash([]);
 
       if (drawEndCircle){
-        // end handle with outline for contrast
         if (isDark()){
           ctx.beginPath();
-          ctx.arc(x2, y2, 8.2, 0, Math.PI*2);
+          ctx.arc(x2, y2, 8.4, 0, Math.PI*2);
           ctx.fillStyle = "rgba(0,0,0,0.55)";
           ctx.fill();
         }
 
         ctx.beginPath();
-        ctx.arc(x2, y2, 7.4, 0, Math.PI*2);
+        ctx.arc(x2, y2, 7.6, 0, Math.PI*2);
         ctx.fillStyle = color;
         ctx.fill();
 
@@ -1279,7 +1191,6 @@
       ctx.save();
       const fill = hexToRgba(colorHex, isDark() ? 0.16 : 0.14);
 
-      // math-like CCW angle growth: flip y
       ctx.translate(cx, cy);
       ctx.scale(1, -1);
 
@@ -1301,33 +1212,34 @@
       return `rgba(${r},${g},${b},${alpha})`;
     }
 
-    // ---------- Unified hold logic ----------
-    // We want mouse/touch AND spacebar to behave the same:
-    // - hold => beginRotate / keep rotating
-    // - release => stopRotate
-    // - if in TURN_END => holding triggers advance turn (same as before)
+    // ---------- Input ----------
     let pointerHolding = false;
     let spaceHolding = false;
-
-    function holdingNow(){
-      return pointerHolding || spaceHolding;
-    }
+    const holdingNow = () => pointerHolding || spaceHolding;
 
     function requestHoldStart(){
-      if (game.state === State.ROUND_START){
-        beginRotate();
-      } else if (game.state === State.TURN_END){
-        advanceTurnOrRound();
-      }
+      if (game.state === State.ROUND_START) beginRotate();
+      else if (game.state === State.TURN_END) advanceTurnOrRound();
     }
-
     function requestHoldEnd(){
-      if (game.state === State.ROTATING){
-        stopRotate();
-      }
+      if (game.state === State.ROTATING) stopRotate();
     }
 
-    // ---------- Pointer input (press-and-hold) ----------
+    function isTypingTarget(el){
+      if (!el) return false;
+      const tag = el.tagName ? el.tagName.toLowerCase() : "";
+      if (el.isContentEditable) return true;
+      if (tag === "textarea") return true;
+      if (tag === "input"){
+        const type = (el.type || "").toLowerCase();
+        return !["range","checkbox","radio","button","submit","color"].includes(type);
+      }
+      return false;
+    }
+    function blurActiveIfNotTyping(){
+      const ae = document.activeElement;
+      if (ae && !isTypingTarget(ae)) ae.blur();
+    }
     function isPointerOnStage(e){
       const rect = stage.getBoundingClientRect();
       const x = (e.clientX ?? (e.touches && e.touches[0]?.clientX)) ?? 0;
@@ -1338,12 +1250,12 @@
     function onPointerDown(e){
       if (!isPointerOnStage(e)) return;
       e.preventDefault();
+      blurActiveIfNotTyping();
       if (!pointerHolding){
         pointerHolding = true;
         requestHoldStart();
       }
     }
-
     function onPointerUp(e){
       if (!pointerHolding) return;
       e.preventDefault();
@@ -1353,31 +1265,17 @@
 
     stage.addEventListener("mousedown", onPointerDown);
     window.addEventListener("mouseup", onPointerUp);
-
     stage.addEventListener("touchstart", onPointerDown, { passive: false });
     window.addEventListener("touchend", onPointerUp, { passive: false });
     window.addEventListener("touchcancel", onPointerUp, { passive: false });
 
-    // ---------- Spacebar hold ----------
-    function isTypingTarget(el){
-      if (!el) return false;
-      const tag = el.tagName ? el.tagName.toLowerCase() : "";
-      return tag === "input" || tag === "textarea" || tag === "select" || el.isContentEditable;
-    }
-
     window.addEventListener("keydown", (e) => {
-      // Space
       if (e.code !== "Space") return;
-
-      // If user is focused in a form element, don't hijack space
-      if (isTypingTarget(document.activeElement)) return;
-
-      // Prevent page scroll
+      const ae = document.activeElement;
+      if (isTypingTarget(ae)) return;
+      if (ae) ae.blur();
       e.preventDefault();
-
-      // Ignore key repeat
       if (e.repeat) return;
-
       if (!spaceHolding){
         spaceHolding = true;
         requestHoldStart();
@@ -1386,10 +1284,9 @@
 
     window.addEventListener("keyup", (e) => {
       if (e.code !== "Space") return;
-      if (isTypingTarget(document.activeElement)) return;
-
+      const ae = document.activeElement;
+      if (isTypingTarget(ae)) return;
       e.preventDefault();
-
       if (spaceHolding){
         spaceHolding = false;
         if (!holdingNow()) requestHoldEnd();
@@ -1410,31 +1307,12 @@
       colorP2.value = getCSS("--p2");
       syncPlayerSwatches();
     }
+    pillP1.addEventListener("click", () => { syncColorInputs(); colorP1.click(); });
+    pillP2.addEventListener("click", () => { if (game.players === 2){ syncColorInputs(); colorP2.click(); } });
+    colorP1.addEventListener("input", () => { setCSS("--p1", colorP1.value); syncColorInputs(); updateHUD(); });
+    colorP2.addEventListener("input", () => { setCSS("--p2", colorP2.value); syncColorInputs(); updateHUD(); });
 
-    pillP1.addEventListener("click", () => {
-      syncColorInputs();
-      colorP1.click();
-    });
-
-    pillP2.addEventListener("click", () => {
-      if (game.players !== 2) return;
-      syncColorInputs();
-      colorP2.click();
-    });
-
-    colorP1.addEventListener("input", () => {
-      setCSS("--p1", colorP1.value);
-      syncColorInputs();
-      updateHUD();
-    });
-
-    colorP2.addEventListener("input", () => {
-      setCSS("--p2", colorP2.value);
-      syncColorInputs();
-      updateHUD();
-    });
-
-    // ---------- Controls wiring ----------
+    // ---------- Controls ----------
     function refreshRangeOptions(){
       populateAngleSets();
       game.angleSet = getSelectedAngleSet();
@@ -1463,6 +1341,7 @@
 
     // ---------- Init ----------
     applyTheme();
+    populateAngleSets();
     refreshRangeOptions();
     resizeCanvas();
     setSpeedPercent(100);
