@@ -1,0 +1,1475 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Angle Stopper</title>
+
+  <style>
+    :root{
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+
+      /* Light theme */
+      --bg: #f4f7ff;
+      --bg2:#eef2ff;
+      --panel: rgba(255,255,255,0.86);
+      --panelBorder: rgba(10, 14, 25, 0.10);
+      --text: #0e1420;
+      --muted: rgba(14,20,32,0.64);
+
+      --stageBg: rgba(255,255,255,0.70);
+      --stageBorder: rgba(10,14,25,0.10);
+
+      /* Dial + drawing */
+      --dial: rgba(14,20,32,0.32);
+      --dialOutline: rgba(14,20,32,0.10);
+      --tick: rgba(14,20,32,0.32);
+      --centerDot: rgba(14,20,32,0.62);
+      --target: rgba(85, 105, 125, 0.62);
+
+      /* Player colors */
+      --p1: #2E86DE;
+      --p2: #E74C3C;
+
+      /* UI */
+      --shadow: 0 14px 40px rgba(10,14,25,0.12);
+      --radius: 18px;
+    }
+
+    /* 🔥 High-contrast dark theme (different approach) */
+    [data-theme="dark"]{
+      --bg: #06070b;
+      --bg2:#090b12;
+
+      --panel: rgba(16,18,26,0.78);
+      --panelBorder: rgba(255,255,255,0.14);
+      --text: #f4f7ff;
+      --muted: rgba(244,247,255,0.72);
+
+      /* Stage background slightly lighter than page so dial pops */
+      --stageBg: rgba(18, 20, 32, 0.88);
+      --stageBorder: rgba(255,255,255,0.16);
+
+      /* Dial + ticks: BRIGHT */
+      --dial: rgba(245, 248, 255, 0.98);       /* near-white */
+      --dialOutline: rgba(0,0,0,0.65);          /* dark outline stroke */
+      --tick: rgba(235, 242, 255, 0.92);
+      --centerDot: rgba(245, 248, 255, 0.95);
+      --target: rgba(200, 220, 255, 0.70);
+
+      --shadow: 0 20px 60px rgba(0,0,0,0.60);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+
+    body{
+      margin: 0;
+      font-family: var(--font);
+      color: var(--text);
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+
+      background:
+        radial-gradient(1200px 650px at 50% -150px, rgba(46,134,222,0.16), transparent 60%),
+        radial-gradient(1100px 650px at 90% 10%, rgba(231,76,60,0.10), transparent 55%),
+        linear-gradient(180deg, var(--bg), var(--bg2));
+    }
+
+    .app{
+      height: 100%;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 12px;
+      padding: 14px;
+    }
+
+    .bar{
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+
+      background: var(--panel);
+      border: 1px solid var(--panelBorder);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 10px 12px;
+      backdrop-filter: blur(10px);
+    }
+
+    .group{
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      padding-right: 10px;
+      border-right: 1px solid var(--panelBorder);
+    }
+    .group:last-child{ border-right: none; padding-right: 0; }
+
+    label{
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+      margin-right: 2px;
+    }
+
+    select, button, input{ font: inherit; }
+
+    select, input[type="number"], button{
+      height: 36px;
+      border-radius: 14px;
+      border: 1px solid var(--panelBorder);
+      background: rgba(255,255,255,0.72);
+      color: var(--text);
+      padding: 0 12px;
+      outline: none;
+    }
+
+    input[type="range"]{
+      width: 160px;
+      height: 36px;
+    }
+
+    select:focus, input[type="number"]:focus, button:focus{
+      border-color: rgba(46,134,222,0.55);
+      box-shadow: 0 0 0 3px rgba(46,134,222,0.18);
+    }
+
+    [data-theme="dark"] select,
+    [data-theme="dark"] input[type="number"],
+    [data-theme="dark"] button{
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.18);
+    }
+    [data-theme="dark"] select option{
+      background: #0a0c14;
+      color: #f4f7ff;
+    }
+
+    button{
+      cursor: pointer;
+      transition: transform 120ms ease, filter 120ms ease;
+    }
+    button:hover{ filter: brightness(1.03); }
+    button:active{ transform: translateY(1px); }
+
+    .togglePill{
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      height: 36px;
+      padding: 0 12px;
+      border-radius: 999px;
+      border: 1px solid var(--panelBorder);
+      background: rgba(255,255,255,0.70);
+    }
+    [data-theme="dark"] .togglePill{
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.18);
+    }
+
+    .togglePill input{
+      appearance: none;
+      width: 42px;
+      height: 24px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.12);
+      position: relative;
+      outline: none;
+      cursor: pointer;
+      border: 1px solid rgba(0,0,0,0.08);
+    }
+    [data-theme="dark"] .togglePill input{
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(255,255,255,0.16);
+    }
+    .togglePill input::after{
+      content:"";
+      position:absolute;
+      top: 3px; left: 3px;
+      width: 18px; height: 18px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.95);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+      transition: transform 160ms ease;
+    }
+    .togglePill input:checked{
+      background: rgba(46,134,222,0.45);
+      border-color: rgba(46,134,222,0.35);
+    }
+    .togglePill input:checked::after{
+      transform: translateX(18px);
+    }
+    .togglePill span{
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .stage{
+      position: relative;
+      border-radius: calc(var(--radius) + 4px);
+      background: var(--stageBg);
+      border: 1px solid var(--stageBorder);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      min-height: 320px;
+      backdrop-filter: blur(10px);
+    }
+
+    canvas{
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .overlay{
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      padding: 16px;
+      pointer-events: none;
+    }
+
+    .targetWrap{
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .targetPill{
+      background: rgba(255,255,255,0.78);
+      border: 1px solid var(--panelBorder);
+      border-radius: 999px;
+      padding: 10px 16px;
+      box-shadow: 0 10px 30px rgba(10,14,25,0.10);
+      backdrop-filter: blur(10px);
+      text-align: center;
+      min-width: 220px;
+    }
+    [data-theme="dark"] .targetPill{
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.18);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+
+    .targetBig{
+      font-weight: 900;
+      font-size: 28px;
+      letter-spacing: 0.2px;
+    }
+    .targetSub{
+      margin-top: 2px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .midRow{
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+    }
+    .playerCol{
+      display: flex;
+      align-items: center;
+    }
+    .playerCol.left{ justify-content: flex-start; }
+    .playerCol.right{ justify-content: flex-end; }
+
+    .playerCard{
+      pointer-events: auto;
+      cursor: pointer;
+      width: min(260px, 44vw);
+      background: rgba(255,255,255,0.76);
+      border: 1px solid var(--panelBorder);
+      border-radius: 22px;
+      padding: 14px 16px;
+      box-shadow: 0 12px 32px rgba(10,14,25,0.10);
+      backdrop-filter: blur(10px);
+      transition: transform 120ms ease, filter 120ms ease;
+      display: grid;
+      gap: 6px;
+    }
+    [data-theme="dark"] .playerCard{
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.18);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.35);
+    }
+    .playerCard:hover{ transform: translateY(-1px); filter: brightness(1.01); }
+    .playerCard:active{ transform: translateY(0px); }
+
+    .playerTop{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .playerName{
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 900;
+      font-size: 18px;
+    }
+    .swatch{
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      box-shadow: 0 0 0 4px rgba(255,255,255,0.65);
+    }
+    [data-theme="dark"] .swatch{ box-shadow: 0 0 0 4px rgba(0,0,0,0.25); }
+
+    .turnTag{
+      font-size: 12px;
+      color: var(--muted);
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--panelBorder);
+      background: rgba(255,255,255,0.56);
+    }
+    [data-theme="dark"] .turnTag{
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(255,255,255,0.14);
+    }
+
+    .scoreBig{
+      font-size: 34px;
+      font-weight: 950;
+      letter-spacing: 0.3px;
+      line-height: 1;
+    }
+    .scoreSub{
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .bottomRow{
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .resultPill{
+      opacity: 0;
+      transform: translateY(4px);
+      transition: opacity 140ms ease, transform 140ms ease;
+
+      background: rgba(255,255,255,0.78);
+      border: 1px solid var(--panelBorder);
+      border-radius: 16px;
+      padding: 10px 12px;
+      box-shadow: 0 12px 32px rgba(10,14,25,0.10);
+      backdrop-filter: blur(10px);
+      min-width: 260px;
+    }
+    [data-theme="dark"] .resultPill{
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.18);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.35);
+    }
+    .resultLine1{ font-weight: 900; font-size: 16px; }
+    .resultLine2{ margin-top: 2px; font-size: 12px; color: var(--muted); }
+
+    .hint{
+      background: rgba(255,255,255,0.76);
+      border: 1px solid var(--panelBorder);
+      border-radius: 16px;
+      padding: 10px 12px;
+      box-shadow: 0 12px 32px rgba(10,14,25,0.10);
+      backdrop-filter: blur(10px);
+      max-width: 620px;
+    }
+    [data-theme="dark"] .hint{
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.18);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.35);
+    }
+    .hintTitle{ font-weight: 900; margin-bottom: 4px; }
+    .hintDesc{ font-size: 12px; color: var(--muted); line-height: 1.35; }
+
+    .footer{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+
+      background: var(--panel);
+      border: 1px solid var(--panelBorder);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 10px 12px;
+      backdrop-filter: blur(10px);
+    }
+
+    .footerLeft{
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 8px;
+      border: 1px solid var(--panelBorder);
+      background: rgba(255,255,255,0.60);
+      color: var(--muted);
+    }
+    [data-theme="dark"] .kbd{
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.16);
+    }
+
+    #advancedRow{
+      display: none;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .hiddenColor{
+      position:absolute;
+      left:-9999px; top:-9999px;
+    }
+
+    @media (max-width: 900px){
+      .playerCard{ width: min(220px, 46vw); }
+      .scoreBig{ font-size: 30px; }
+      .targetBig{ font-size: 24px; }
+    }
+    @media (max-width: 720px){
+      .midRow{ grid-template-columns: 1fr; gap: 10px; }
+      .playerCol.left, .playerCol.right{ justify-content: center; }
+    }
+  </style>
+</head>
+
+<body data-theme="light">
+  <div class="app">
+    <!-- Top controls -->
+    <div class="bar">
+      <div class="group">
+        <label for="players">Players</label>
+        <select id="players">
+          <option value="1">1 Player</option>
+          <option value="2">2 Players</option>
+        </select>
+      </div>
+
+      <div class="group">
+        <label for="extent">Mode</label>
+        <select id="extent">
+          <option value="180">0–180°</option>
+          <option value="360">0–360°</option>
+        </select>
+      </div>
+
+      <div class="group">
+        <label for="range">Angle Set</label>
+        <select id="range"></select>
+      </div>
+
+      <div class="group">
+        <label for="difficulty">Support</label>
+        <select id="difficulty" title="Visual supports (ticks/numbers) and target fading">
+          <option value="easy">Easy (more supports)</option>
+          <option value="medium" selected>Medium</option>
+          <option value="hard">Hard (fewer supports)</option>
+          <option value="ultimate">Ultimate (target fades)</option>
+        </select>
+      </div>
+
+      <div class="group" title="Rotation speed (percent of normal)">
+        <label for="speed">Speed</label>
+        <input id="speed" type="range" min="25" max="250" value="100" step="5" />
+        <select id="speedQuick" title="Presets">
+          <option value="70">Slow</option>
+          <option value="100" selected>Normal</option>
+          <option value="130">Fast</option>
+          <option value="170">Very fast</option>
+          <option value="220">Ultimate</option>
+        </select>
+        <input id="speedNum" type="number" min="25" max="500" value="100" step="5" />
+        <span style="font-size:12px;color:var(--muted);">%</span>
+      </div>
+
+      <div class="group">
+        <label for="rounds">Rounds</label>
+        <select id="rounds" title="How many rounds to play">
+          <option value="5">5</option>
+          <option value="10" selected>10</option>
+          <option value="15">15</option>
+          <option value="endless">Endless</option>
+        </select>
+      </div>
+
+      <div class="group">
+        <label for="theme">Theme</label>
+        <select id="theme">
+          <option value="light" selected>Light</option>
+          <option value="dark">Dark</option>
+        </select>
+      </div>
+
+      <div class="group">
+        <div class="togglePill" title="Show extra options (visual overrides)">
+          <input type="checkbox" id="advanced" />
+          <span>Options</span>
+        </div>
+        <button id="fullscreen" title="Fullscreen">⛶</button>
+        <button id="reset" title="Reset game">Reset</button>
+      </div>
+    </div>
+
+    <!-- Stage -->
+    <div class="stage" id="stage">
+      <canvas id="cv"></canvas>
+
+      <div class="overlay">
+        <div class="targetWrap">
+          <div class="targetPill">
+            <div class="targetBig" id="hudTarget">Target: —°</div>
+            <div class="targetSub" id="hudRound">Round 1 • Player 1</div>
+          </div>
+        </div>
+
+        <div class="midRow">
+          <div class="playerCol left">
+            <div class="playerCard" id="pillP1" title="Click to change Player 1 color">
+              <div class="playerTop">
+                <div class="playerName">
+                  <span class="swatch" id="swatchP1"></span>
+                  <span>Player 1</span>
+                </div>
+                <div class="turnTag" id="turnP1">Your turn</div>
+              </div>
+              <div class="scoreBig" id="hudScore1">0</div>
+              <div class="scoreSub">Score</div>
+            </div>
+          </div>
+
+          <div></div>
+
+          <div class="playerCol right">
+            <div class="playerCard" id="pillP2" title="Click to change Player 2 color">
+              <div class="playerTop">
+                <div class="playerName">
+                  <span class="swatch" id="swatchP2"></span>
+                  <span>Player 2</span>
+                </div>
+                <div class="turnTag" id="turnP2">—</div>
+              </div>
+              <div class="scoreBig" id="hudScore2">—</div>
+              <div class="scoreSub">Score</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bottomRow">
+          <div class="resultPill" id="hudResultPill">
+            <div class="resultLine1" id="hudResult">You got: —°</div>
+            <div class="resultLine2" id="hudDelta">+— points</div>
+          </div>
+
+          <div class="hint">
+            <div class="hintTitle" id="hudPrompt">Hold (mouse/touch) or hold Space to rotate</div>
+            <div class="hintDesc" id="hudSub">Release to stop. 0° right, 90° up, 180° left, 270° down.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <div class="footerLeft">
+        <span><strong>Controls:</strong></span>
+        <span class="kbd">Hold</span><span>mouse/touch</span>
+        <span class="kbd">Space</span><span>hold + release</span>
+        <span style="opacity:.7;">•</span>
+        <span><strong>Tip:</strong> try 45°, 90°, 135°.</span>
+      </div>
+
+      <div class="footerLeft" id="advancedRow">
+        <span>Visual overrides:</span>
+        <label class="togglePill" style="gap:10px;">
+          <input type="checkbox" id="ticksOverride" />
+          <span>Ticks ON</span>
+        </label>
+        <label class="togglePill" style="gap:10px;">
+          <input type="checkbox" id="numbersOverride" />
+          <span>Numbers ON</span>
+        </label>
+      </div>
+    </div>
+
+    <input type="color" id="colorP1" class="hiddenColor" />
+    <input type="color" id="colorP2" class="hiddenColor" />
+  </div>
+
+  <script>
+    // ---------- Utilities ----------
+    const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+    const randInt = (lo, hi) => Math.floor(lo + Math.random() * (hi - lo + 1));
+    const degToRad = d => d * Math.PI / 180;
+
+    function wrapDeg(d, extent){
+      let x = d % extent;
+      if (x < 0) x += extent;
+      return x;
+    }
+
+    function shortestDistance(a, b, extent){
+      let d = wrapDeg(b - a, extent);
+      if (d > extent / 2) d = extent - d;
+      return Math.abs(d);
+    }
+
+    function scoreFromError(errorDeg){
+      const maxPoints = 100;
+      const zeroAt = 20;
+      const s = Math.round(maxPoints * (1 - (errorDeg / zeroAt)));
+      return clamp(s, 0, maxPoints);
+    }
+
+    const DIFF = {
+      easy:    { ticks: true,  numbers: true,  targetFadeMs: 0 },
+      medium:  { ticks: true,  numbers: false, targetFadeMs: 0 },
+      hard:    { ticks: false, numbers: false, targetFadeMs: 0 },
+      ultimate:{ ticks: false, numbers: false, targetFadeMs: 650 }
+    };
+
+    const BASE_SPEED_DPS = 90;
+
+    function getAngleSets(extent){
+      if (extent === 180){
+        return [
+          { id:"0-90",   label:"0–90° (acute)",    lo:0,  hi:90 },
+          { id:"90-180", label:"90–180° (obtuse)", lo:90, hi:180 },
+          { id:"mixed",  label:"0–180° (mixed)",   lo:0,  hi:180 },
+          { id:"tens",   label:"Multiples of 10°", lo:0,  hi:180, step:10 },
+          { id:"fives",  label:"Multiples of 5°",  lo:0,  hi:180, step:5  },
+          { id:"bench",  label:"Benchmarks (15°)", lo:0,  hi:180, step:15 }
+        ];
+      }
+      return [
+        { id:"0-180",    label:"0–180°",           lo:0,   hi:180 },
+        { id:"180-360",  label:"180–360°",         lo:180, hi:360 },
+        { id:"full",     label:"0–360° (full)",    lo:0,   hi:360 },
+        { id:"tens",     label:"Multiples of 10°", lo:0,   hi:360, step:10 },
+        { id:"fifteens", label:"Multiples of 15°", lo:0,   hi:360, step:15 },
+        { id:"thirty",   label:"Multiples of 30°", lo:0,   hi:360, step:30 }
+      ];
+    }
+
+    function pickTargetAngle(set, extent){
+      const lo = set.lo, hi = set.hi;
+      if (set.step){
+        const start = Math.ceil(lo / set.step) * set.step;
+        const end = Math.floor(hi / set.step) * set.step;
+        const n = Math.floor((end - start) / set.step) + 1;
+        const val = start + randInt(0, Math.max(0, n-1)) * set.step;
+        return wrapDeg(val === extent ? 0 : val, extent);
+      }
+      let val = randInt(lo, hi);
+      if (val === extent) val = 0;
+      return wrapDeg(val, extent);
+    }
+
+    // ---------- DOM ----------
+    const stage = document.getElementById("stage");
+    const cv = document.getElementById("cv");
+    const ctx = cv.getContext("2d");
+
+    const playersSel = document.getElementById("players");
+    const extentSel  = document.getElementById("extent");
+    const rangeSel   = document.getElementById("range");
+    const diffSel    = document.getElementById("difficulty");
+    const themeSel   = document.getElementById("theme");
+
+    const speedSlider = document.getElementById("speed");
+    const speedNum = document.getElementById("speedNum");
+    const speedQuick = document.getElementById("speedQuick");
+
+    const roundsSel = document.getElementById("rounds");
+    const btnFS = document.getElementById("fullscreen");
+    const btnReset = document.getElementById("reset");
+
+    const advancedChk = document.getElementById("advanced");
+    const advancedRow = document.getElementById("advancedRow");
+    const ticksOverride = document.getElementById("ticksOverride");
+    const numbersOverride = document.getElementById("numbersOverride");
+
+    const hudTarget = document.getElementById("hudTarget");
+    const hudRound = document.getElementById("hudRound");
+    const hudResultPill = document.getElementById("hudResultPill");
+    const hudResult = document.getElementById("hudResult");
+    const hudDelta = document.getElementById("hudDelta");
+    const hudPrompt = document.getElementById("hudPrompt");
+    const hudSub = document.getElementById("hudSub");
+
+    const pillP1 = document.getElementById("pillP1");
+    const pillP2 = document.getElementById("pillP2");
+    const hudScore1 = document.getElementById("hudScore1");
+    const hudScore2 = document.getElementById("hudScore2");
+    const turnP1 = document.getElementById("turnP1");
+    const turnP2 = document.getElementById("turnP2");
+    const swatchP1 = document.getElementById("swatchP1");
+    const swatchP2 = document.getElementById("swatchP2");
+
+    const colorP1 = document.getElementById("colorP1");
+    const colorP2 = document.getElementById("colorP2");
+
+    // ---------- CSS helpers ----------
+    function getCSS(varName){
+      return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+    }
+    function setCSS(varName, value){
+      document.documentElement.style.setProperty(varName, value);
+    }
+
+    function isDark(){
+      return document.body.getAttribute("data-theme") === "dark";
+    }
+
+    // ---------- Canvas scaling ----------
+    function resizeCanvas(){
+      const r = stage.getBoundingClientRect();
+      const DPR = Math.max(1, Math.min(2.5, window.devicePixelRatio || 1));
+      cv.width = Math.floor(r.width * DPR);
+      cv.height = Math.floor(r.height * DPR);
+      ctx.setTransform(1,0,0,1,0,0);
+      ctx.scale(DPR, DPR);
+    }
+    window.addEventListener("resize", resizeCanvas);
+    window.addEventListener("load", () => {
+      resizeCanvas();
+      setTimeout(resizeCanvas, 50);
+      setTimeout(resizeCanvas, 250);
+    });
+
+    // ---------- State ----------
+    const State = {
+      SETUP: "setup",
+      ROUND_START: "round_start",
+      ROTATING: "rotating",
+      FEEDBACK: "feedback",
+      TURN_END: "turn_end",
+      GAME_OVER: "game_over"
+    };
+
+    const game = {
+      state: State.SETUP,
+      extent: 180,
+      players: 1,
+      difficulty: "medium",
+      angleSet: null,
+
+      showTicks: true,
+      showNumbers: false,
+
+      speedPercent: 100,
+
+      round: 1,
+      currentPlayer: 1,
+      scores: [0,0],
+      maxRounds: 10,
+
+      targetDeg: 45,
+      armDeg: 0,
+      lastTs: 0,
+      rotating: false,
+
+      lastResultDeg: null,
+      lastErrorDeg: null,
+      lastPoints: null,
+
+      targetShownAt: 0,
+
+      progressDeg: 0,
+      progressVisible: false
+    };
+
+    // ---------- UI setup ----------
+    function applyTheme(){
+      document.body.setAttribute("data-theme", themeSel.value);
+    }
+
+    function populateAngleSets(){
+      const extent = parseInt(extentSel.value, 10);
+      const sets = getAngleSets(extent);
+      rangeSel.innerHTML = "";
+      for (const s of sets){
+        const opt = document.createElement("option");
+        opt.value = s.id;
+        opt.textContent = s.label;
+        rangeSel.appendChild(opt);
+      }
+      rangeSel.value = (extent === 180) ? "mixed" : "full";
+    }
+
+    function getSelectedAngleSet(){
+      const extent = parseInt(extentSel.value, 10);
+      const sets = getAngleSets(extent);
+      return sets.find(s => s.id === rangeSel.value) || sets[0];
+    }
+
+    function applyDifficultyVisuals(){
+      const d = DIFF[game.difficulty];
+      let ticks = d.ticks;
+      let numbers = d.numbers;
+
+      if (advancedChk.checked){
+        if (ticksOverride.checked) ticks = true;
+        if (numbersOverride.checked) numbers = true;
+      }
+      game.showTicks = ticks;
+      game.showNumbers = numbers;
+    }
+
+    function setSpeedPercent(pct){
+      const v = clamp(Math.round(pct), 25, 500);
+      game.speedPercent = v;
+      speedNum.value = String(v);
+      speedSlider.value = String(clamp(v, 25, 250));
+    }
+
+    function setRoundsFromUI(){
+      const v = roundsSel.value;
+      game.maxRounds = (v === "endless") ? Infinity : parseInt(v, 10);
+    }
+
+    function showResultPill(show){
+      if (show){
+        hudResultPill.style.opacity = "1";
+        hudResultPill.style.transform = "translateY(0px)";
+      } else {
+        hudResultPill.style.opacity = "0";
+        hudResultPill.style.transform = "translateY(4px)";
+      }
+    }
+
+    function syncPlayerSwatches(){
+      swatchP1.style.background = getCSS("--p1");
+      swatchP2.style.background = getCSS("--p2");
+    }
+
+    function updateHUD(){
+      const p = game.currentPlayer;
+      const roundsLabel = (game.maxRounds === Infinity)
+        ? `Round ${game.round} • Player ${p}`
+        : `Round ${game.round}/${game.maxRounds} • Player ${p}`;
+      hudRound.textContent = roundsLabel;
+
+      const d = DIFF[game.difficulty];
+      const now = performance.now();
+      const hideTarget = (d.targetFadeMs > 0) && (now - game.targetShownAt > d.targetFadeMs);
+      hudTarget.textContent = hideTarget ? `Target: ?°` : `Target: ${game.targetDeg}°`;
+
+      hudScore1.textContent = String(game.scores[0]);
+      hudScore2.textContent = (game.players === 2) ? String(game.scores[1]) : "—";
+
+      const p1Active = (p === 1);
+      const p2Active = (p === 2);
+
+      turnP1.textContent = p1Active ? "Your turn" : "—";
+      turnP2.textContent = (game.players === 2) ? (p2Active ? "Your turn" : "—") : "—";
+
+      pillP1.style.outline = p1Active ? `2px solid ${getCSS("--p1")}` : "none";
+      pillP2.style.outline = (game.players === 2 && p2Active) ? `2px solid ${getCSS("--p2")}` : "none";
+      pillP2.style.opacity = (game.players === 2) ? "1" : "0.55";
+
+      if (game.state === State.ROUND_START){
+        hudPrompt.textContent = "Hold mouse/touch OR hold Space to rotate";
+        hudSub.textContent = "Release to stop. Use 0°, 90°, 180°, 270° as anchors.";
+      } else if (game.state === State.ROTATING){
+        hudPrompt.textContent = "Keep holding… release to stop!";
+        hudSub.textContent = "Watch the shaded sector build from 0° as you rotate.";
+      } else if (game.state === State.FEEDBACK || game.state === State.TURN_END){
+        hudPrompt.textContent = "Nice! Hold again for the next turn";
+        hudSub.textContent = "Try to beat your last score.";
+      } else if (game.state === State.GAME_OVER){
+        hudPrompt.textContent = "Game over — press Reset to play again";
+        hudSub.textContent = "Change settings anytime from the top bar.";
+      }
+    }
+
+    function startSetup(){
+      game.players = parseInt(playersSel.value, 10);
+      game.extent = parseInt(extentSel.value, 10);
+      game.difficulty = diffSel.value;
+      game.angleSet = getSelectedAngleSet();
+      setRoundsFromUI();
+
+      game.state = State.SETUP;
+      game.round = 1;
+      game.currentPlayer = 1;
+      game.scores = [0,0];
+
+      game.lastResultDeg = null;
+      game.lastErrorDeg = null;
+      game.lastPoints = null;
+
+      game.progressDeg = 0;
+      game.progressVisible = false;
+
+      applyDifficultyVisuals();
+      showResultPill(false);
+      startRound();
+    }
+
+    function startRound(){
+      game.state = State.ROUND_START;
+      game.targetDeg = pickTargetAngle(game.angleSet, game.extent);
+
+      game.armDeg = 0; // always start at 0
+      game.targetShownAt = performance.now();
+
+      game.lastResultDeg = null;
+      game.lastErrorDeg = null;
+      game.lastPoints = null;
+
+      game.progressDeg = 0;
+      game.progressVisible = false;
+
+      showResultPill(false);
+      updateHUD();
+    }
+
+    function beginRotate(){
+      if (game.state !== State.ROUND_START && game.state !== State.TURN_END) return;
+      game.state = State.ROTATING;
+      game.rotating = true;
+      game.lastTs = performance.now();
+
+      game.progressVisible = true;
+      game.progressDeg = game.armDeg;
+
+      updateHUD();
+    }
+
+    function stopRotate(){
+      if (game.state !== State.ROTATING) return;
+      game.rotating = false;
+
+      const result = wrapDeg(Math.round(game.armDeg), game.extent);
+      const error = shortestDistance(game.targetDeg, result, game.extent);
+      const points = scoreFromError(error);
+
+      game.lastResultDeg = result;
+      game.lastErrorDeg = error;
+      game.lastPoints = points;
+
+      // keep progress visible after stop
+      game.progressVisible = true;
+      game.progressDeg = result;
+
+      game.scores[game.currentPlayer - 1] += points;
+
+      hudResult.textContent = `You got: ${result}°`;
+      hudDelta.textContent  = `+${points} points (off by ${error}°)`;
+      showResultPill(true);
+
+      game.state = State.FEEDBACK;
+      updateHUD();
+
+      setTimeout(() => {
+        if (game.state === State.FEEDBACK){
+          game.state = State.TURN_END;
+          updateHUD();
+        }
+      }, 450);
+    }
+
+    function advanceTurnOrRound(){
+      if (game.state !== State.TURN_END) return;
+
+      if (game.players === 2){
+        game.currentPlayer = (game.currentPlayer === 1) ? 2 : 1;
+      }
+
+      if (game.players === 1){
+        game.round += 1;
+      } else {
+        if (game.currentPlayer === 1) game.round += 1;
+      }
+
+      if (game.maxRounds !== Infinity && game.round > game.maxRounds){
+        game.state = State.GAME_OVER;
+        updateHUD();
+        return;
+      }
+
+      startRound();
+    }
+
+    // ---------- Drawing ----------
+    function draw(ts){
+      const w = stage.clientWidth;
+      const h = stage.clientHeight;
+      ctx.clearRect(0,0,w,h);
+
+      applyDifficultyVisuals();
+
+      const cx = w / 2;
+      const cy = h / 2 + 10;
+      const r = Math.min(w, h) * 0.33;
+
+      // Background “dial spotlight” (works in both themes; stronger in dark)
+      drawDialSpotlight(cx, cy, r);
+
+      // Dial circumference: double-stroke for contrast (especially dark mode)
+      drawDialCircle(cx, cy, r);
+
+      // ticks
+      if (game.showTicks) drawTicks(cx, cy, r, game.extent);
+      else drawCardinalTicks(cx, cy, r);
+
+      // numbers
+      if (game.showNumbers) drawKeyNumbers(cx, cy, r, game.extent);
+
+      // progress sector
+      if (game.progressVisible){
+        const fillHex = (game.currentPlayer === 1) ? getCSS("--p1") : getCSS("--p2");
+        drawProgressSector(cx, cy, r, game.progressDeg, fillHex);
+      }
+
+      // dashed target after stop
+      const showTarget = (game.state === State.FEEDBACK || game.state === State.TURN_END || game.state === State.GAME_OVER);
+      if (showTarget){
+        drawArm(cx, cy, r, game.targetDeg, getCSS("--target"), 3.2, true, true);
+      }
+
+      // player arm
+      const armColor = (game.currentPlayer === 1) ? getCSS("--p1") : getCSS("--p2");
+      drawArm(cx, cy, r, game.armDeg, armColor, 5.2, false, true);
+
+      // center dot
+      ctx.beginPath();
+      ctx.arc(cx, cy, 4.5, 0, Math.PI*2);
+      ctx.fillStyle = getCSS("--centerDot");
+      ctx.fill();
+
+      // rotation update
+      if (game.state === State.ROTATING && game.rotating){
+        const dt = (ts - game.lastTs) / 1000;
+        game.lastTs = ts;
+
+        const speed = BASE_SPEED_DPS * (game.speedPercent / 100);
+        game.armDeg = wrapDeg(game.armDeg + speed * dt, game.extent);
+        game.progressDeg = game.armDeg;
+
+        updateHUD();
+      }
+
+      requestAnimationFrame(draw);
+    }
+
+    function drawDialSpotlight(cx, cy, r){
+      ctx.save();
+      const g = ctx.createRadialGradient(cx, cy, r * 0.15, cx, cy, r * 1.15);
+
+      if (isDark()){
+        // brighter “spotlight” makes the white dial look anchored
+        g.addColorStop(0.0, "rgba(255,255,255,0.10)");
+        g.addColorStop(0.6, "rgba(255,255,255,0.04)");
+        g.addColorStop(1.0, "rgba(255,255,255,0.00)");
+      } else {
+        g.addColorStop(0.0, "rgba(10,14,25,0.04)");
+        g.addColorStop(0.7, "rgba(10,14,25,0.02)");
+        g.addColorStop(1.0, "rgba(10,14,25,0.00)");
+      }
+
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r * 1.18, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawDialCircle(cx, cy, r){
+      // Outline stroke (dark) + top bright stroke
+      ctx.save();
+
+      // dark outline (improves visibility even if dial hits bright background spots)
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI*2);
+      ctx.strokeStyle = getCSS("--dialOutline");
+      ctx.lineWidth = isDark() ? 6.6 : 4.8;
+      ctx.stroke();
+
+      // bright main stroke
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI*2);
+      ctx.strokeStyle = getCSS("--dial");
+      ctx.lineWidth = isDark() ? 3.6 : 3.2;
+      ctx.stroke();
+
+      // thin inner ring for extra definition (dark mode)
+      if (isDark()){
+        ctx.beginPath();
+        ctx.arc(cx, cy, r - 2.2, 0, Math.PI*2);
+        ctx.strokeStyle = "rgba(255,255,255,0.35)";
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+
+    function drawCardinalTicks(cx, cy, r){
+      const angles = [0, 90, 180, 270];
+      ctx.strokeStyle = getCSS("--tick");
+
+      for (const a of angles){
+        const ang = degToRad(a);
+        const len = isDark() ? 18 : 15;
+        const lw = isDark() ? 3.2 : 2.6;
+
+        const x1 = cx + Math.cos(ang) * (r - len);
+        const y1 = cy - Math.sin(ang) * (r - len);
+        const x2 = cx + Math.cos(ang) * (r + 1);
+        const y2 = cy - Math.sin(ang) * (r + 1);
+
+        // tick outline
+        if (isDark()){
+          ctx.beginPath();
+          ctx.lineWidth = lw + 2;
+          ctx.strokeStyle = "rgba(0,0,0,0.65)";
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
+          ctx.strokeStyle = getCSS("--tick");
+        }
+
+        ctx.beginPath();
+        ctx.lineWidth = lw;
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+      }
+    }
+
+    function drawTicks(cx, cy, r, extent){
+      const keyAngles = (extent === 180)
+        ? [0, 30, 45, 60, 90, 120, 135, 150, 180]
+        : [0, 30, 45, 60, 90, 120, 135, 150, 180, 210, 225, 240, 270, 300, 315, 330];
+
+      for (const a of keyAngles){
+        const ang = degToRad(a);
+        const isKey = (a % 90 === 0);
+        const isMid = (a % 45 === 0);
+
+        const len = isKey ? (isDark() ? 18 : 15) : (isMid ? (isDark() ? 14 : 12) : (isDark() ? 11 : 9));
+        const lw  = isKey ? (isDark() ? 3.2 : 2.6) : (isDark() ? 2.4 : 1.9);
+
+        const x1 = cx + Math.cos(ang) * (r - len);
+        const y1 = cy - Math.sin(ang) * (r - len);
+        const x2 = cx + Math.cos(ang) * (r + 1);
+        const y2 = cy - Math.sin(ang) * (r + 1);
+
+        // dark outline behind ticks in dark mode
+        if (isDark()){
+          ctx.beginPath();
+          ctx.lineWidth = lw + 2;
+          ctx.strokeStyle = "rgba(0,0,0,0.65)";
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
+        }
+
+        ctx.beginPath();
+        ctx.strokeStyle = getCSS("--tick");
+        ctx.lineWidth = lw;
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+      }
+    }
+
+    function drawKeyNumbers(cx, cy, r, extent){
+      const keys = (extent === 180) ? [0, 90, 180] : [0, 90, 180, 270];
+
+      ctx.save();
+      ctx.font = "900 12px system-ui";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      for (const a of keys){
+        const ang = degToRad(a);
+        const rr = r + 28;
+        const x = cx + Math.cos(ang) * rr;
+        const y = cy - Math.sin(ang) * rr;
+
+        if (isDark()){
+          // shadow outline so numbers are readable
+          ctx.fillStyle = "rgba(0,0,0,0.75)";
+          ctx.fillText(String(a), x, y + 1);
+          ctx.fillStyle = "rgba(245,248,255,0.88)";
+        } else {
+          ctx.fillStyle = getCSS("--muted");
+        }
+        ctx.fillText(String(a), x, y);
+      }
+      ctx.restore();
+    }
+
+    function drawArm(cx, cy, r, deg, color, width, dashed, drawEndCircle){
+      const ang = degToRad(deg);
+      const x2 = cx + Math.cos(ang) * r;
+      const y2 = cy - Math.sin(ang) * r;
+
+      ctx.save();
+
+      // subtle shadow for a crisp “modern” arm
+      ctx.beginPath();
+      ctx.lineWidth = width;
+      ctx.lineCap = "round";
+      ctx.strokeStyle = color;
+      ctx.setLineDash(dashed ? [9, 8] : []);
+      ctx.shadowColor = "rgba(0,0,0,0.22)";
+      ctx.shadowBlur = 10;
+      ctx.shadowOffsetY = 2;
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+
+      ctx.shadowBlur = 0;
+      ctx.setLineDash([]);
+
+      if (drawEndCircle){
+        // end handle with outline for contrast
+        if (isDark()){
+          ctx.beginPath();
+          ctx.arc(x2, y2, 8.2, 0, Math.PI*2);
+          ctx.fillStyle = "rgba(0,0,0,0.55)";
+          ctx.fill();
+        }
+
+        ctx.beginPath();
+        ctx.arc(x2, y2, 7.4, 0, Math.PI*2);
+        ctx.fillStyle = color;
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(x2, y2, 3.2, 0, Math.PI*2);
+        ctx.fillStyle = "rgba(255,255,255,0.90)";
+        ctx.fill();
+      }
+
+      ctx.restore();
+    }
+
+    function drawProgressSector(cx, cy, r, currentDeg, colorHex){
+      const deg = currentDeg;
+      if (deg <= 0.7) return;
+
+      ctx.save();
+      const fill = hexToRgba(colorHex, isDark() ? 0.16 : 0.14);
+
+      // math-like CCW angle growth: flip y
+      ctx.translate(cx, cy);
+      ctx.scale(1, -1);
+
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.arc(0, 0, r, degToRad(0), degToRad(deg), false);
+      ctx.closePath();
+      ctx.fillStyle = fill;
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    function hexToRgba(hex, alpha){
+      if (!hex || hex[0] !== "#" || hex.length !== 7) return `rgba(120,140,160,${alpha})`;
+      const r = parseInt(hex.slice(1,3), 16);
+      const g = parseInt(hex.slice(3,5), 16);
+      const b = parseInt(hex.slice(5,7), 16);
+      return `rgba(${r},${g},${b},${alpha})`;
+    }
+
+    // ---------- Unified hold logic ----------
+    // We want mouse/touch AND spacebar to behave the same:
+    // - hold => beginRotate / keep rotating
+    // - release => stopRotate
+    // - if in TURN_END => holding triggers advance turn (same as before)
+    let pointerHolding = false;
+    let spaceHolding = false;
+
+    function holdingNow(){
+      return pointerHolding || spaceHolding;
+    }
+
+    function requestHoldStart(){
+      if (game.state === State.ROUND_START){
+        beginRotate();
+      } else if (game.state === State.TURN_END){
+        advanceTurnOrRound();
+      }
+    }
+
+    function requestHoldEnd(){
+      if (game.state === State.ROTATING){
+        stopRotate();
+      }
+    }
+
+    // ---------- Pointer input (press-and-hold) ----------
+    function isPointerOnStage(e){
+      const rect = stage.getBoundingClientRect();
+      const x = (e.clientX ?? (e.touches && e.touches[0]?.clientX)) ?? 0;
+      const y = (e.clientY ?? (e.touches && e.touches[0]?.clientY)) ?? 0;
+      return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+    }
+
+    function onPointerDown(e){
+      if (!isPointerOnStage(e)) return;
+      e.preventDefault();
+      if (!pointerHolding){
+        pointerHolding = true;
+        requestHoldStart();
+      }
+    }
+
+    function onPointerUp(e){
+      if (!pointerHolding) return;
+      e.preventDefault();
+      pointerHolding = false;
+      if (!holdingNow()) requestHoldEnd();
+    }
+
+    stage.addEventListener("mousedown", onPointerDown);
+    window.addEventListener("mouseup", onPointerUp);
+
+    stage.addEventListener("touchstart", onPointerDown, { passive: false });
+    window.addEventListener("touchend", onPointerUp, { passive: false });
+    window.addEventListener("touchcancel", onPointerUp, { passive: false });
+
+    // ---------- Spacebar hold ----------
+    function isTypingTarget(el){
+      if (!el) return false;
+      const tag = el.tagName ? el.tagName.toLowerCase() : "";
+      return tag === "input" || tag === "textarea" || tag === "select" || el.isContentEditable;
+    }
+
+    window.addEventListener("keydown", (e) => {
+      // Space
+      if (e.code !== "Space") return;
+
+      // If user is focused in a form element, don't hijack space
+      if (isTypingTarget(document.activeElement)) return;
+
+      // Prevent page scroll
+      e.preventDefault();
+
+      // Ignore key repeat
+      if (e.repeat) return;
+
+      if (!spaceHolding){
+        spaceHolding = true;
+        requestHoldStart();
+      }
+    });
+
+    window.addEventListener("keyup", (e) => {
+      if (e.code !== "Space") return;
+      if (isTypingTarget(document.activeElement)) return;
+
+      e.preventDefault();
+
+      if (spaceHolding){
+        spaceHolding = false;
+        if (!holdingNow()) requestHoldEnd();
+      }
+    });
+
+    // ---------- Fullscreen ----------
+    btnFS.addEventListener("click", async () => {
+      try{
+        if (!document.fullscreenElement) await stage.requestFullscreen();
+        else await document.exitFullscreen();
+      } catch (_) {}
+    });
+
+    // ---------- Color pickers ----------
+    function syncColorInputs(){
+      colorP1.value = getCSS("--p1");
+      colorP2.value = getCSS("--p2");
+      syncPlayerSwatches();
+    }
+
+    pillP1.addEventListener("click", () => {
+      syncColorInputs();
+      colorP1.click();
+    });
+
+    pillP2.addEventListener("click", () => {
+      if (game.players !== 2) return;
+      syncColorInputs();
+      colorP2.click();
+    });
+
+    colorP1.addEventListener("input", () => {
+      setCSS("--p1", colorP1.value);
+      syncColorInputs();
+      updateHUD();
+    });
+
+    colorP2.addEventListener("input", () => {
+      setCSS("--p2", colorP2.value);
+      syncColorInputs();
+      updateHUD();
+    });
+
+    // ---------- Controls wiring ----------
+    function refreshRangeOptions(){
+      populateAngleSets();
+      game.angleSet = getSelectedAngleSet();
+    }
+
+    playersSel.addEventListener("change", () => startSetup());
+    extentSel.addEventListener("change", () => { refreshRangeOptions(); startSetup(); });
+    rangeSel.addEventListener("change", () => startSetup());
+    diffSel.addEventListener("change", () => startSetup());
+    roundsSel.addEventListener("change", () => startSetup());
+
+    themeSel.addEventListener("change", () => { applyTheme(); updateHUD(); });
+
+    btnReset.addEventListener("click", () => startSetup());
+
+    advancedChk.addEventListener("change", () => {
+      advancedRow.style.display = advancedChk.checked ? "flex" : "none";
+      startSetup();
+    });
+    ticksOverride.addEventListener("change", () => startSetup());
+    numbersOverride.addEventListener("change", () => startSetup());
+
+    speedSlider.addEventListener("input", () => setSpeedPercent(parseInt(speedSlider.value, 10)));
+    speedNum.addEventListener("change", () => setSpeedPercent(parseInt(speedNum.value, 10) || 100));
+    speedQuick.addEventListener("change", () => setSpeedPercent(parseInt(speedQuick.value, 10) || 100));
+
+    // ---------- Init ----------
+    applyTheme();
+    refreshRangeOptions();
+    resizeCanvas();
+    setSpeedPercent(100);
+    syncColorInputs();
+    startSetup();
+    updateHUD();
+    requestAnimationFrame(draw);
+  </script>
+</body>
+</html>
